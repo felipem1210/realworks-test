@@ -13,21 +13,22 @@ Test for realworks
 ### Install Istio
 
 1. Download latest release of istioctl: `curl -L https://istio.io/downloadIstio | sh -`
-2. Install istio: `istio-1.18.2/bin/istioctl install --set profile=default -y`
+2. Install istio: `istio-1.18.2/bin/istioctl install --set profile=default -y`. The version may change
 3. Init istio-operator in cluster: `istio-1.18.2/bin/istioctl operator init`
 
-### Deploy controller
+### Build controller
 
 1. Build the image: `docker build -f controller/Dockerfile -t config-deployment:latest controller/`
 2. Load image in minikube cluster: `minikube image load config-deployment:latest`
-3. Deploy the controller in cluster: `kubectl apply -k controller/config/default`
+
+For more info about how the controller works check its [README file](controller/README.md)
 
 ### Deploy manifests
 
-1. Run:
+1. Run to deploy controller, istio Ingress gateway and application:
 
 ```sh
-kubectl apply -k infra/controller
+kubectl apply -k infra/configdeploy-controller/default
 kubectl apply -k infra/istio
 kubectl apply -k infra/application/overlays/test
 kubectl apply -k infra/application/overlays/prod
@@ -41,24 +42,29 @@ kubectl apply -k infra/application/overlays/prod
 ```sh
 export INGRESS_NAME=istio-ingressgateway
 export INGRESS_NS=istio-system
-export INGRESS_HOST=$(kubectl -n "$INGRESS_NS" get service "$INGRESS_NAME" -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
+export INGRESS_HOST=$(kubectl -n "$INGRESS_NS" get service "$INGRESS_NAME" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 ```
 
 3. Access the service using curl:
 
-```sh
-For the test environment: 
-curl  -H Host:test.example.com "http://$INGRESS_HOST"
+* For the test environment: 
 
-For the prod environment:
+```sh
+curl  -H Host:test.example.com "http://$INGRESS_HOST"
+```
+
+* For the prod environment:
+
+```sh
 curl  -H Host:prod.example.com "http://$INGRESS_HOST"
 ```
 
 ### Testing controller working
 
-1. Go to the file `infra/application/overlays/prod` or `infra/application/overlays/test` and edit the data of the configmap.
+1. Go to the file `infra/application/overlays/prod/configmap.yaml` or `infra/application/overlays/test/configmap.yaml` and edit the data of the configmap.
 2. Apply the changes with `kubectl apply -k`
 3. A new pod will be created automatically.
+4. Perform the test of application again, and you will see the new message displayed.
 
 ### Development considerations
 

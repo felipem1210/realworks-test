@@ -1,5 +1,7 @@
 # ConfigDeployment controller
-A controller that will trigger a rolling restart of a deployment, when the deployment is using a specific configmap
+A controller that will trigger a rolling restart of a deployment, when the deployment is using a specific configmap.
+
+Powered by: [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
 
 ## Description
 By default in Kubernetes, when a configmap changes, a rolling restart is not triggered in a Deployment using the configmap. That can be necessary, more than all if the configmap is storing environment variables. That's the purpose of this controller.
@@ -11,28 +13,27 @@ annotations:
   configMapUsed: my-configmap
 ```
 
+The controller is basically doing the following:
+
+1. Detecting any change in CRDs `ConfigDeployment`.
+2. Getting the configMap name that is defined in the CRD
+3. Checking for Deployments with the annotation `configMapUsed` defined with the name of the configMap defined in the CRD. The configMap, ConfigDeployment and Deployment must be all in the same namespace.
+4. Get the version of the `configMap`.
+5. Check if the `configMapVersion` exists as an annotation called `configMapVersion` in the pod managed by the Deployment.
+6. If the `configmapVersion` is different than the one of the configMap, update the annotation, that will trigger a rolling restart of the Deployment.
+
+[Controller code](internal/controller/configdeployment_controller.go)
+[CRD code](api/v1/configdeployment_types.go)
+
 ## Getting Started
-You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
+You’ll need a Kubernetes cluster to run against. 
+
 **Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 ### Running on the cluster
-1. Install Instances of Custom Resources:
 
-```sh
-kubectl apply -f config/samples/
-```
+Check the README of realworks-test project
 
-2. Build and push your image to the location specified by `IMG`:
-
-```sh
-make docker-build docker-push IMG=<some-registry>/controller:tag
-```
-
-3. Deploy the controller to the cluster with the image specified by `IMG`:
-
-```sh
-make deploy IMG=<some-registry>/controller:tag
-```
 
 ### Uninstall CRDs
 To delete the CRDs from the cluster:
