@@ -1,0 +1,27 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: istio-controlplane
+spec:
+  meshConfig:
+    accessLogFile: /dev/stdout
+  profile: default
+  enableTracing: true
+  defaultConfig:
+    holdApplicationUntilProxyStarts: true
+  components:
+    ingressGateways:
+    - name: istio-ingressgateway
+      namespace: istio-system
+      enabled: true
+      label:
+        # Set a unique label for the gateway. This is required to ensure Gateways
+        # can select this workload
+        istio: ingressgateway
+  values:
+    gateways:
+      istio-ingressgateway:
+        # Enable gateway injection
+        injectionTemplate: gateway
+    sidecarInjectorWebhook:
+      rewriteAppHTTPProbe: true
