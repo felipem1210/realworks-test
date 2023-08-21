@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld
+  labels:
+    env: test
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        env: test
+    spec:
+      containers:
+        - name: helloworld
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "10m"
+            limits:
+              memory: "124Mi"
+              cpu: "50m"

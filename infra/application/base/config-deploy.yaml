@@ -1,0 +1,6 @@
+apiVersion: webapp.felipem1210/v1
+kind: ConfigDeployment
+metadata:
+  name: helloworld
+spec:
+  configMap: helloworld-config

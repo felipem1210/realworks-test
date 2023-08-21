@@ -1,0 +1,12 @@
+apiVersion: webapp.felipem1210/v1
+kind: ConfigDeployment
+metadata:
+  labels:
+    app.kubernetes.io/name: configdeployment
+    app.kubernetes.io/instance: configdeployment-sample
+    app.kubernetes.io/part-of: controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: controller
+  name: configdeployment-sample
+spec:
+  configMap: my-configmap

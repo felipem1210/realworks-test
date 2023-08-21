@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld
+  labels:
+    app: helloworld
+  annotations:
+    configMapUsed: "helloworld-config"
+spec:
+  # the deployments must wait X seconds after seeing a Pod become healthy before moving on to updating the next Pod
+  minReadySeconds: 10
+  progressDeadlineSeconds: 60
+  # keep the last X deployments history in case of rollback
+  revisionHistoryLimit: 5
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      # label for the deployment used by Service to connect
+      app: helloworld
+
+  template:
+    metadata:
+      name: helloworld
+      labels:
+        app: helloworld
+      annotations:
+        configMapUsed: "helloworld-config"
+
+    spec:
+      restartPolicy: Always
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+
+      # target specific nodes
+      # nodeSelector:
+      #   type: application
+
+      # imagePullSecrets:
+      #   - name: my-registry-secret
+
+      containers:
+        - name: helloworld # container name in pod
+          image: configmap-app:latest # docker image used for this container
+          imagePullPolicy: Never # always get the docker image from registry
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+      volumes:
+        - name: config
+          configMap:
+            name: helloworld-config
+            items:
+              - key: "config"
+                path: "config.txt"
